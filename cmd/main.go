@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"os"
 	"ussd-gateway-go/config"
-	"ussd-gateway-go/internal/adapters/http"
+	"ussd-gateway-go/internal/adapters/grpc"
 	"ussd-gateway-go/internal/application/core/api"
 )
 
@@ -72,7 +72,7 @@ func main() {
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}))
 
 	application := api.NewApplication()
-	httpAdapter := http.NewAdapter(application, config.GetApplicationPort())
+	httpAdapter := grpc.NewAdapter(application, config.GetApplicationPort())
 	httpAdapter.Run()
 
 }

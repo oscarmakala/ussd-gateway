@@ -1,6 +1,8 @@
 package domain
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type UssdCollectStep struct {
 	Step
@@ -22,7 +24,7 @@ func NewUssdCollectStep(name string) UssdCollectStep {
 	}
 }
 
-func (u *UssdCollectStep) render(interpreter Interpreter, containerModule string) UssdCollectExt {
+func (u *UssdCollectStep) Render(interpreter *Interpreter, containerModule string) (UssdCollectExt, error) {
 	ext := UssdCollectExt{
 		Messages: make([]UssdSayExt, 0),
 	}
@@ -36,8 +38,8 @@ func (u *UssdCollectStep) render(interpreter Interpreter, containerModule string
 	ext.Action = pairs
 
 	for _, message := range u.Messages {
-		messageExt := message.render(interpreter)
+		messageExt, _ := message.Render(interpreter, containerModule)
 		ext.Messages = append(ext.Messages, messageExt)
 	}
-	return ext
+	return ext, nil
 }

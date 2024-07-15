@@ -18,8 +18,8 @@ func NewUssdSayStep(name string, text string) UssdSayStep {
 	}
 }
 
-func (u *UssdSayStep) render(interpreter Interpreter) UssdSayExt {
+func (u *UssdSayStep) Render(interpreter *Interpreter, containerModule string) (UssdSayExt, error) {
 	ext := UssdSayExt{}
 	ext.Text = interpreter.populateVariables(u.Text)
-	return ext
+	return ext, nil
 }

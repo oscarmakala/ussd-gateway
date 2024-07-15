@@ -15,5 +15,17 @@ type Step struct {
 	Name string
 }
 
-type StepExt struct {
+type ExtStep struct {
+}
+
+func (s *Step) HandelAction(interpreter *Interpreter, targetModule Node) {
+
+}
+
+func (s *Step) Render(interpreter *Interpreter, name string) (*ExtStep, error) {
+	return nil, nil
+}
+
+func (s *Step) Process(i *Interpreter) (string, error) {
+	return "", nil
 }

@@ -19,7 +19,7 @@ func NewNode(name string) Node {
 	}
 }
 
-func (n *Node) getStepByName(stepName string) (*Step, error) {
+func (n *Node) GetStepByName(stepName string) (*Step, error) {
 	if stepName == "" {
 		return nil, errors.New(`stepName shouldn't be null`)
 	}
@@ -31,7 +31,7 @@ func (n *Node) getStepByName(stepName string) (*Step, error) {
 	return nil, nil
 }
 
-func (n *Node) getStepNames() []string {
+func (n *Node) GetStepNames() []string {
 	var names = make([]string, 0)
 	for _, step := range n.Steps {
 		names = append(names, step.Name)

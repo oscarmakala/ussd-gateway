@@ -14,6 +14,13 @@ const (
 )
 
 type ExtResponse struct {
+	Steps []ExtStep
+}
+
+func NewExtResponse() *ExtResponse {
+	return &ExtResponse{
+		Steps: make([]ExtStep, 0),
+	}
 }
 
 type ProjectIndex struct {
@@ -25,8 +32,9 @@ type Interpreter struct {
 	Variables      map[string]string
 	NodeNames      []NodeName
 	TargetParam    string
-	AppResult      ExtResponse
+	AppResult      *ExtResponse
 	ProjectOptions ProjectIndex
+	AppName        string
 }
 
 type VariableInText struct {
@@ -59,7 +67,7 @@ func processRequestParameters(requestParams map[string]string) map[string]string
 	return variables
 }
 
-func (i *Interpreter) Interpret() ExtResponse {
+func (i *Interpreter) Interpret() *ExtResponse {
 	i.NodeNames = i.ProjectOptions.NodeNames
 	if i.TargetParam == "" {
 		i.TargetParam = i.ProjectOptions.DefaultTarget
@@ -70,10 +78,12 @@ func (i *Interpreter) Interpret() ExtResponse {
 
 func (i *Interpreter) dispatch(targetParam string) {
 	target := i.parseTarget(targetParam)
-	log.Infof("dispatch: %v", target)
-
-	if target.Action != nil {
-
+	targetModule, _ := i.loadNode(target.NodeName)
+	if target.Action != "" {
+		step, _ := targetModule.GetStepByName(target.StepName)
+		step.HandelAction(i, *targetModule)
+	} else {
+		i.interpret(targetModule, "", nil, nil)
 	}
 }
 
@@ -92,7 +102,53 @@ func (i *Interpreter) parseTarget(targetParam string) Target {
 	}
 	return target
 }
-func (i *Interpreter) interpret(module Node, startingStepName string, prependStep string, originModule Node) {
+func (i *Interpreter) interpret(module *Node, startingStepName string, prependStep *Step, originModule *Node) {
+	moduleName := module.Name
+
+	if i.AppResult == nil {
+		i.AppResult = NewExtResponse()
+	}
+	// if we are switching modules, remove module-scoped variables
+	if originModule != nil && originModule.Name != moduleName {
+		i.clearModuleVariables()
+	}
+
+	// load steps for this module
+	nodeStepNames := module.GetStepNames()
+	// if no starting step has been specified in the target, use the first step of the node as default
+	if startingStepName == "" && len(nodeStepNames) != 0 {
+		startingStepName = nodeStepNames[0]
+	}
+	// Prepend step if required. Usually used for error messages
+	if prependStep != nil {
+		appStep, _ := prependStep.Render(i, moduleName)
+		log.Tracef("Prepending say step: %v", appStep)
+		i.AppResult.Steps = append(i.AppResult.Steps, *appStep)
+	}
+
+	startStepFound := false
+	for _, stepName := range nodeStepNames {
+		if stepName == startingStepName {
+			startStepFound = true
+		}
+		if startStepFound {
+			// we found our starting step. Let's start processing
+			step, _ := module.GetStepByName(stepName)
+			rerouteTo, _ := step.Process(i)
+			// check if we have to break the currently rendered module
+			if rerouteTo != "" {
+				reRoutedModule, _ := i.loadNode(rerouteTo)
+				i.interpret(reRoutedModule, "", nil, module)
+				return
+			}
+			// otherwise continue rendering the current module
+			appStep, _ := step.Render(i, moduleName)
+			if appStep != nil {
+				i.AppResult.Steps = append(i.AppResult.Steps, *appStep)
+			}
+		}
+	}
+
 }
 func (i *Interpreter) populateVariables(sourceText string) string {
 	if sourceText == "" {
@@ -142,6 +198,19 @@ func (i *Interpreter) buildAction(pairs map[string]string) {
 	for key := range i.Variables {
 		if strings.HasPrefix(key, StickyPrefix) || strings.HasPrefix(key, ModulePrefix) {
 			pairs[key] = i.Variables[key]
+		}
+	}
+}
+
+func (i *Interpreter) loadNode(moduleName string) (*Node, error) {
+	//return i.Storage.LoadNode(moduleName, i.AppName)
+	return nil, nil
+}
+
+func (i *Interpreter) clearModuleVariables() {
+	for key := range i.Variables {
+		if strings.HasPrefix(key, ModulePrefix) {
+			delete(i.Variables, key)
 		}
 	}
 }
