@@ -12,7 +12,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"os"
 	"ussd-gateway-go/config"
-	"ussd-gateway-go/internal/adapters/grpc"
+	"ussd-gateway-go/internal/adapters/gateway"
+	"ussd-gateway-go/internal/adapters/ussd"
 	"ussd-gateway-go/internal/application/core/api"
 )
 
@@ -71,8 +72,12 @@ func main() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}))
 
-	application := api.NewApplication()
-	httpAdapter := grpc.NewAdapter(application, config.GetApplicationPort())
+	ussdAdapter, err := ussd.NewAdapter()
+	if err != nil {
+		log.Fatalf("Failed to initialize ussd stub. Error: %v", err)
+	}
+	application := api.NewApplication(ussdAdapter)
+	httpAdapter := gateway.NewAdapter(application, config.GetApplicationPort())
 	httpAdapter.Run()
 
 }

@@ -2,19 +2,22 @@ package api
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	"ussd-gateway-go/internal/application/core/domain"
 	"ussd-gateway-go/internal/ports"
 )
 
 type Application struct {
-	db   ports.DBPort
 	ussd ports.UssdPort
 }
 
-func NewApplication() *Application {
-	return &Application{}
+func NewApplication(ussd ports.UssdPort) *Application {
+	return &Application{
+		ussd: ussd,
+	}
 }
 
-func (app Application) HandleUssdRequest(ctx context.Context, ussdRequest domain.UssdRequest) {
-
+func (a Application) ProcessRequest(ctx context.Context, ussdRequest domain.UssdRequest) (domain.UssdResponse, error) {
+	log.Debug("ProcessRequest called")
+	return domain.UssdResponse{}, nil
 }

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ussd;
+option go_package = "v1/ussd";
+
+service UssdService {
+  rpc HandleUssdRequest(UssdRequest) returns(UssdResponse) {}
+}
+
+message UssdRequest{
+  string ussd_payload = 1;
+  string language = 2;
+  string session_id = 3;
+  string msisdn = 4;
+  string service_code = 5;
+  string ussd_message_type = 6;
+}
+
+message UssdResponse{
+  string ussd_payload = 1;
+  string msisdn = 2;
+  string session_id = 3;
+  string service_code = 4;
+  string ussd_message_type = 5;
+}

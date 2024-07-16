@@ -6,5 +6,5 @@ import (
 )
 
 type APIPort interface {
-	HandleUssdRequest(ctx context.Context, ussdRequest domain.UssdRequest)
+	ProcessRequest(ctx context.Context, ussdRequest domain.UssdRequest) (domain.UssdResponse, error)
 }

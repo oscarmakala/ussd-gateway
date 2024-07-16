@@ -1,0 +1,13 @@
+POST http://localhost:8087/api/v1/ussd
+Content-Type: application/json
+
+{
+  "ussdPayload": "test",
+  "language": "en",
+  "sessionId": "255785670105",
+  "msisdn": "255785670105",
+  "serviceCode": "",
+  "ussdMessageType": "START"
+}
+
+
